@@ -236,40 +236,6 @@ WHERE vuln_id=?''',(cve_id,cvss_score,access_vector,access_complexity, authentic
 
 	return vuln_id
 
-
-def getSoftwareInformation(conn, software_id):
-	cur = conn.cursor()
-	res = cur.execute('''SELECT vendor FROM software WHERE software_id = ?''',(software_id,))
-	results = res.fetchall()
-	if len(results) > 0:
-		vendor = results[0][0]
-	res = cur.execute('''SELECT software FROM software WHERE software_id = ?''',(software_id,))
-	results = res.fetchall()
-	if len(results) > 0:
-		software = results[0][0]
-	res = cur.execute('''SELECT version FROM software WHERE software_id = ?''',(software_id,))
-	results = res.fetchall()
-	if len(results) > 0:
-		version = results[0][0]
-	return vendor, software, version
-
-def getVulnerabilitiesOfSoftware(conn, software_id):
-	vendor, software, version = getSoftwareInformation(conn, software_id)
-	cpe_pattern = '%' + vendor + ':' + software + ':' + version + '%'
-	cur = conn.cursor()
-	res = cur.execute('''SELECT cpe FROM cpe WHERE cpe LIKE ?''',(cpe_pattern,))
-	results = res.fetchall()
-	if len(results) > 0:
-		cpe = results[0][0]
-	res = cur.execute('''SELECT vuln_id FROM vulnerability WHERE vuln_id IN (SELECT vulnerability_id FROM cpe_to_cve WHERE cpe = ?)''',(cpe,))
-	results = res.fetchall()
-	print len(results) + 'vulnerabilities found for software ' + software_id + '.'
-	return results
-
-def testData (conn):
-	cur = conn.cursor()
-	res = cur.execute('''INSERT INTO software(vendor,product,version) VALUES ('oracle','mysql','5.5')''')
-
 ##################
 ###### MAIN ######
 ##################

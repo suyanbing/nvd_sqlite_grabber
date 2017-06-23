@@ -167,7 +167,7 @@ def import_cves(dllink):
 				modified_date=modified.split(".")[0]
 				pubepoch=int(time.mktime((time.strptime(published_date,"%Y-%m-%dT%H:%M:%S"))))
 				modepoch=int(time.mktime((time.strptime(modified_date,"%Y-%m-%dT%H:%M:%S"))))
-	
+				link = 'https://nvd.nist.gov/vuln/detail/' + cve_id
 				results = c.execute('''SELECT modified FROM cves WHERE cveid = ?''',(cve_id,))
 				result = results.fetchall()
 				if result:
@@ -177,14 +177,14 @@ def import_cves(dllink):
 									authentication = ?, confidentiality_impact = ?,
 									integrity_impact = ?, availability_impact = ?,
 									description = ?, published = ?, modified = ? WHERE cveid = ?''',(cvss_score,access_vector,access_complexity,authentication,confidentiality_impact,integrity_impact,availability_impact,description,pubepoch,modepoch,cve_id))
+						c.execute('''DELETE FROM cpe_cve WHERE cveid = ?''',(cve_id,))
 						for cpe in cpetextlist:
-							c.execute('''DELETE FROM cpe_cve WHERE cveid = ?''',(cve_id,))
 							c.execute('''INSERT INTO cpe_cve (cpe,cveid) VALUES (?,?)''',(cpe,cve_id))
 					#else:
 						#print '%s is up-to-date.' % (cve_id)
 				else:
 					#print 'Importing %s' % (cve_id)
-					c.execute('''INSERT INTO cves (cvss,access_vector,access_complexity,authentication,confidentiality_impact,integrity_impact,availability_impact,description,published,modified,cveid) VALUES (?,?,?,?,?,?,?,?,?,?,?)''',(cvss_score,access_vector,access_complexity,authentication,confidentiality_impact,integrity_impact,availability_impact,description,pubepoch,modepoch,cve_id))
+					c.execute('''INSERT INTO cves (cvss,access_vector,access_complexity,authentication,confidentiality_impact,integrity_impact,availability_impact,description,published,modified,cveid,link) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)''',(cvss_score,access_vector,access_complexity,authentication,confidentiality_impact,integrity_impact,availability_impact,description,pubepoch,modepoch,cve_id,link))
 					for cpe in cpetextlist:
 						c.execute('''INSERT INTO cpe_cve (cpe,cveid) VALUES (?,?)''',(cpe,cve_id))
 				bar.update(i+1)
@@ -210,7 +210,7 @@ c.execute('''CREATE TABLE IF NOT EXISTS cves (
 		description STRING,
 		published INTEGER,
 		modified INTEGER,
-		vuldb STRING,
+		link STRING,
 		PRIMARY KEY (cveid))''')
 
 c.execute('''CREATE TABLE IF NOT EXISTS download_dates(
